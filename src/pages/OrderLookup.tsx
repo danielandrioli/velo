@@ -58,7 +58,12 @@ const OrderLookup = () => {
     }
     
     if (order) {
-      setSearchedOrder(order);
+
+      // setTimeout(() => {
+      //   setSearchedOrder(order)
+      // }, 4000) // 4 segundos de delay para teste e2e no momento da busca da ordem
+
+      setSearchedOrder(order)
     } else {
       setNotFound(true);
     }
