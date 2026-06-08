@@ -1,5 +1,6 @@
-import { test, expect } from '@playwright/test';
+import { test } from '@playwright/test';
 import { OrderLookupPage } from '../pages/OrderLookupPage';
+import { getApprovedOrder } from '../support/order-lookup-test-data';
 
 test.describe('Consulta de pedido', () => { // Exemplo de suíte de testes
   // Armazene aqui todos seus tests
@@ -14,16 +15,15 @@ let orderLookupPage: OrderLookupPage;
 test.beforeEach('Enter webpage', async ({ page }) => {
   orderLookupPage = new OrderLookupPage(page)
   await orderLookupPage.open();
+  await orderLookupPage.checkPageLoaded();
 })
 
-test('Consult existing order - approved', async ({ page }) => {
-  const orderId = 'VLO-F3XGFQ';
-  const clientName = 'Daniel Test'
+test('Consult existing order - approved', async () => {
+  const order = getApprovedOrder();
 
-  await orderLookupPage.checkPageLoaded();
-  await orderLookupPage.searchOrder(orderId);
-  await orderLookupPage.assertOrderResult(orderId, clientName);
-  await orderLookupPage.assertStatusBadge('APROVADO');
+  await orderLookupPage.searchOrder(order.id);
+  await orderLookupPage.assertOrderResult(order.id, order.customer.name);
+  await orderLookupPage.assertStatusBadge(order.status);
 })
 
 
@@ -31,7 +31,6 @@ test('Consult existing order - reproved', async ({ page }) => {
   const orderId = 'VLO-3UWWDQ';
   const clientName = 'Jatoba Cicero'
   
-  await orderLookupPage.checkPageLoaded();
   await orderLookupPage.searchOrder(orderId);
   await orderLookupPage.assertOrderResult(orderId, clientName);
   await orderLookupPage.assertStatusBadge('REPROVADO');
@@ -41,7 +40,6 @@ test('Consult existing order - Analyzing', async ({ page }) => {
   const orderId = 'VLO-2DBUR5';
   const clientName = 'Elenor Morissette'
   
-  await orderLookupPage.checkPageLoaded();
   await orderLookupPage.searchOrder(orderId);
   await orderLookupPage.assertOrderResult(orderId, clientName);
   await orderLookupPage.assertStatusBadge('EM_ANALISE');
@@ -54,49 +52,11 @@ test('Should show message when the order is not found', async ({ page }) => {
 })
 
 
-test('Correct informations should be shown - using snapshot', async ({ page }) => {
-  const orderId = 'VLO-F3XGFQ';
-  const clientName = 'Daniel Test'
-  orderLookupPage.searchOrder(orderId)
+test('Correct informations should be shown - using snapshot', async () => {
+  const order = getApprovedOrder();
 
-  await expect(page.getByTestId('order-result-VLO-F3XGFQ')).toMatchAriaSnapshot(`
-    - img
-    - paragraph: Pedido
-    - paragraph: ${orderId}
-    - status:
-      - img
-      - text: APROVADO
-    - img "Velô Sprint"
-    - paragraph: Modelo
-    - paragraph: Velô Sprint
-    - paragraph: Cor
-    - paragraph: Glacier Blue
-    - paragraph: Interior
-    - paragraph: cream
-    - paragraph: Rodas
-    - paragraph: aero Wheels
-    - heading "Dados do Cliente" [level=4]
-    - paragraph: Nome
-    - paragraph: ${clientName}
-    - paragraph: Email
-    - paragraph: test@gmail.com
-    - paragraph: Loja de Retirada
-    - paragraph
-    - paragraph: Data do Pedido
-    - paragraph: /\\d+\\/\\d+\\/\\d+/
-    - heading "Pagamento" [level=4]
-    - paragraph: À Vista
-    - paragraph: /R\\$ \\d+\\.\\d+,\\d+/
-  `);
-  /*
-  const statusBadge = page.getByRole('status').filter({ hasText: "REPROVADO" })
-    const statusIcon = statusBadge.locator('svg')
-    await expect(statusBadge).toHaveClass(/bg-red-100/) // A barra '/' representa um "contains". Tô usando ela porque esse elemento contém várias outras classes além da bg-green-100
-    await expect(statusBadge).toHaveClass(/text-red-700/)
-    await expect(statusIcon).toHaveClass(/lucide-circle-check-big/)
-  */
-
-
+  await orderLookupPage.searchOrder(order.id);
+  await orderLookupPage.assertOrderResultAriaSnapshot(order);
 })
 
 /*
