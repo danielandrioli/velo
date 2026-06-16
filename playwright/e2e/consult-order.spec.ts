@@ -1,91 +1,55 @@
-import { test } from '@playwright/test';
-import { OrderLookupPage } from '../pages/OrderLookupPage';
+import { test } from '../support/fixtures';
 import { getApprovedOrder } from '../support/order-lookup-test-data';
 
-test.describe('Consulta de pedido', () => { // Exemplo de suíte de testes
-  // Armazene aqui todos seus tests
-  // test('Exemplo de test', async ({ page }) => { })
-  test.beforeEach('Enter webpage', async ({ page }) =>
-    await page.goto('https://www.tibia.com')
-  )
-  // ..
-})
+test.beforeEach(async ({ app }) => {
+  await app.orderLookup.open();
+  await app.orderLookup.checkPageLoaded();
+});
 
-let orderLookupPage: OrderLookupPage;
-test.beforeEach('Enter webpage', async ({ page }) => {
-  orderLookupPage = new OrderLookupPage(page)
-  await orderLookupPage.open();
-  await orderLookupPage.checkPageLoaded();
-})
-
-test('Consult existing order - approved', async () => {
+test('Consult existing order - approved', async ({ app }) => {
   const order = getApprovedOrder();
 
-  await orderLookupPage.searchOrder(order.id);
-  await orderLookupPage.assertOrderResult(order.id, order.customer.name);
-  await orderLookupPage.assertStatusBadge(order.status);
-})
+  await app.orderLookup.searchOrder(order.id);
+  await app.orderLookup.assertOrderResult(order.id, order.customer.name);
+  await app.orderLookup.assertStatusBadge(order.status);
+});
 
-
-test('Consult existing order - reproved', async ({ page }) => {
+test('Consult existing order - reproved', async ({ app }) => {
   const orderId = 'VLO-3UWWDQ';
-  const clientName = 'Jatoba Cicero'
-  
-  await orderLookupPage.searchOrder(orderId);
-  await orderLookupPage.assertOrderResult(orderId, clientName);
-  await orderLookupPage.assertStatusBadge('REPROVADO');
-})
+  const clientName = 'Jatoba Cicero';
 
-test('Consult existing order - Analyzing', async ({ page }) => {
+  await app.orderLookup.searchOrder(orderId);
+  await app.orderLookup.assertOrderResult(orderId, clientName);
+  await app.orderLookup.assertStatusBadge('REPROVADO');
+});
+
+test('Consult existing order - Analyzing', async ({ app }) => {
   const orderId = 'VLO-2DBUR5';
-  const clientName = 'Elenor Morissette'
-  
-  await orderLookupPage.searchOrder(orderId);
-  await orderLookupPage.assertOrderResult(orderId, clientName);
-  await orderLookupPage.assertStatusBadge('EM_ANALISE');
-})
+  const clientName = 'Elenor Morissette';
 
+  await app.orderLookup.searchOrder(orderId);
+  await app.orderLookup.assertOrderResult(orderId, clientName);
+  await app.orderLookup.assertStatusBadge('EM_ANALISE');
+});
 
-test('Should show message when the order is not found', async ({ page }) => {
-  await orderLookupPage.searchOrder('VLO-abcde');
-  await orderLookupPage.assertOrderNotFound();
-})
+test('Should show message when the order is not found', async ({ app }) => {
+  await app.orderLookup.searchOrder('VLO-abcde');
+  await app.orderLookup.assertOrderNotFound();
+});
 
-
-test('Correct informations should be shown - using snapshot', async () => {
+test('Correct informations should be shown - using snapshot', async ({ app }) => {
   const order = getApprovedOrder();
 
-  await orderLookupPage.searchOrder(order.id);
-  await orderLookupPage.assertOrderResultAriaSnapshot(order);
+  await app.orderLookup.searchOrder(order.id);
+  await app.orderLookup.assertOrderResultAriaSnapshot(order);
+});
+
+test('Search button should be disabled if no text is present in text field', async ({ app }) => {
+  await app.orderLookup.assertSearchButtonDisabled()
 })
 
-/*
-test('Consult existing order - approved', async ({ page }) => {
-  const orderId = 'VLO-F3XGFQ';
-  const clientName = 'Daniel Test'
-  const orderLookupPage = new OrderLookupPage(page)
-
-
-  //Checkpoint 2: Check if the order lookup page is loaded
-  await expect(page.getByRole('heading')).toContainText('Consultar Pedido');
-  //Act
-  orderLookupPage.searchOrder(orderId)
-
-  //Assertion
-  //Utilizando xpath puro quando não há muitos locators bons:
-  const clientLocator = page.locator(`//p[text()="Nome"]/following-sibling::p[text()="${clientName}"]`)
-  await expect(clientLocator).toBeVisible;
-
-  //Outro meio não usando xpath puro
-  const orderIdLocator = page.getByRole("paragraph").filter({ hasText: /^Pedido$/ }) // Expressão regular obrigando que comece com Pedido e termine com Pedido, para assim não confundir com o "Consulte Pedido"
-    .locator("..") // Sobe pro pai
-  await expect(orderIdLocator).toContainText(orderId) // (antigo) await expect(page.getByTestId('order-result-id')).toContainText('VLO-F3XGFQ');
-
-  await expect(page.getByText('APROVADO')).toBeVisible();
-  const statusBadge = page.getByRole('status').filter({ hasText: "APROVADO" })
-  const statusIcon = statusBadge.locator('svg')
-  await expect(statusBadge).toHaveClass(/bg-green-100/) // A barra '/' representa um "contains". Tô usando ela porque esse elemento contém várias outras classes além da bg-green-100
-  await expect(statusBadge).toHaveClass(/text-green-700/)
-  await expect(statusIcon).toHaveClass(/lucide-circle-check-big/)
+test('Search button should be disabled if just space is present in text field', async ({ app }) => {
+  await app.orderLookup.elements.searchTextField.fill("    ")
+  await app.orderLookup.assertSearchButtonDisabled()
 })
-  */
+
