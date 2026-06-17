@@ -1,7 +1,22 @@
-import { test, expect, Page } from '@playwright/test';
+import { test, expect } from '../support/fixtures';
 import { cpf } from 'cpf-cnpj-validator';
 import { faker } from '@faker-js/faker';
 import { log } from 'console';
+import { CarColor, WheelType, Optionals } from '../support/car_config_data';
+
+test('Resume section should contain the correct car details', async ({ configurePage, orderPage, page }) => {
+    let selectedColor = CarColor.MidnightBlack
+    let selectedWheels = WheelType.Sport
+    let optional1 = Optionals.FluxCapacitor
+    let optional2 = Optionals.PrecisionPark
+    await configurePage.open()
+    await configurePage.selectColor(selectedColor)
+    await configurePage.selectWheels(selectedWheels)
+    await configurePage.selectOptionals(optional1, optional2)
+    await configurePage.clickCheckoutButton()
+
+    await orderPage.assertResumeContainsConfiguredDetails(selectedColor, selectedWheels, optional1, optional2)
+})
 
 test('Create order with optionals', async ({ page }) => {
     const color = { name: 'Lunar White', locatorId: 'color-option-lunar-white' }

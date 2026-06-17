@@ -1,24 +1,24 @@
-import { test } from '@playwright/test';
+// import { test } from '@playwright/test';
+import { test, expect } from '../support/fixtures';
 import { OrderLookupPage } from '../pages/OrderLookupPage';
 import { getApprovedOrder } from '../support/order-lookup-test-data';
 
 test.describe('Consulta de pedido', () => { // Exemplo de suíte de testes
   // Armazene aqui todos seus tests
   // test('Exemplo de test', async ({ page }) => { })
-  test.beforeEach('Enter webpage', async ({ page }) =>
+  test.beforeEach('Enter webpage', async ({ page }) => // Esse hook vai funcionar só para os testes dentro desta suíte
     await page.goto('https://www.tibia.com')
   )
   // ..
 })
 
-let orderLookupPage: OrderLookupPage;
-test.beforeEach('Enter webpage', async ({ page }) => {
-  orderLookupPage = new OrderLookupPage(page)
+// let orderLookupPage: OrderLookupPage;
+test.beforeEach('Enter webpage', async ({ orderLookupPage }) => {
   await orderLookupPage.open();
   await orderLookupPage.checkPageLoaded();
 })
 
-test('Consult existing order - approved', async () => {
+test('Consult existing order - approved', async ({ orderLookupPage }) => {
   const order = getApprovedOrder();
 
   await orderLookupPage.searchOrder(order.id);
@@ -27,32 +27,32 @@ test('Consult existing order - approved', async () => {
 })
 
 
-test('Consult existing order - reproved', async ({ page }) => {
+test('Consult existing order - reproved', async ({ orderLookupPage }) => {
   const orderId = 'VLO-3UWWDQ';
   const clientName = 'Jatoba Cicero'
-  
+
   await orderLookupPage.searchOrder(orderId);
   await orderLookupPage.assertOrderResult(orderId, clientName);
   await orderLookupPage.assertStatusBadge('REPROVADO');
 })
 
-test('Consult existing order - Analyzing', async ({ page }) => {
+test('Consult existing order - Analyzing', async ({ orderLookupPage }) => {
   const orderId = 'VLO-2DBUR5';
   const clientName = 'Elenor Morissette'
-  
+
   await orderLookupPage.searchOrder(orderId);
   await orderLookupPage.assertOrderResult(orderId, clientName);
   await orderLookupPage.assertStatusBadge('EM_ANALISE');
 })
 
 
-test('Should show message when the order is not found', async ({ page }) => {
+test('Should show message when the order is not found', async ({ orderLookupPage }) => {
   await orderLookupPage.searchOrder('VLO-abcde');
   await orderLookupPage.assertOrderNotFound();
 })
 
 
-test('Correct informations should be shown - using snapshot', async () => {
+test('Correct informations should be shown - using snapshot', async ({ orderLookupPage }) => {
   const order = getApprovedOrder();
 
   await orderLookupPage.searchOrder(order.id);
