@@ -1,5 +1,5 @@
 import { expect, Page } from '@playwright/test';
-import type { OrderLookupTestData } from '../support/order-lookup-test-data';
+import type { OrderLookupTestData } from '../support/data/order_lookup';
 import { Header } from './components/Header';
 
 type OrderStatus = 'APROVADO' | 'REPROVADO' | 'EM_ANALISE';

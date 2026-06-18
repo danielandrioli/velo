@@ -1,5 +1,5 @@
 import { expect, Page } from "@playwright/test";
-import { CarColor, Optionals, WheelType } from "../support/car_config_data";
+import { CarColor, Optionals, WheelType } from "../support/data/car_config_data";
 
 export class ConfigurePage {
     constructor(private page: Page) { }
@@ -26,10 +26,10 @@ export class ConfigurePage {
         await this.page.getByTestId(`wheel-option-${wheels}`).click();
     }
 
-    async selectOptionals(optional1: Optionals, optional2?: Optionals) {
-        console.log('optional1: ' + optional1.valueOf(), 'optional2: ' + optional2?.valueOf())
-        await this.page.getByTestId('section-opcionais').getByText(optional1.valueOf()).click()
-
+    async selectOptionals(optional1?: Optionals, optional2?: Optionals) {
+        if (optional1) {
+            await this.page.getByTestId('section-opcionais').getByText(optional1.valueOf()).click()
+        }
         if (optional2) {
             await this.page.getByTestId('section-opcionais').getByText(optional2.valueOf()).click()
         }

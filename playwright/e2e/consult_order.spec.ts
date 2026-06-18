@@ -1,7 +1,7 @@
 // import { test } from '@playwright/test';
 import { test, expect } from '../support/fixtures';
 import { OrderLookupPage } from '../pages/OrderLookupPage';
-import { getApprovedOrder } from '../support/order-lookup-test-data';
+import { getApprovedOrder } from '../support/data/order_lookup';
 
 test.describe('Consulta de pedido', () => { // Exemplo de suíte de testes
   // Armazene aqui todos seus tests

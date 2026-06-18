@@ -1,20 +1,20 @@
 import { expect, Page } from "@playwright/test";
-import { CarColor, Optionals, WheelType } from "../support/car_config_data";
+import { Car, CarColor, Optionals, WheelType } from "../support/data/car_config_data";
 
 export class OrderPage {
     constructor(private page: Page) {}
 
     // ─── Assertions ────────────────────────────────────────────────────────────
-    async assertResumeContainsConfiguredDetails(cor: CarColor, wheels: WheelType, optional1?: Optionals, optional2?: Optionals) {
+    async assertResumeContainsConfiguredDetails(car: Car) {
         const resumeContainer = this.page.getByText('Resumo').locator('..')
 
-        await expect(resumeContainer.getByText('Cor').locator('..')).toContainText(cor.valueOf())
-        await expect(resumeContainer.getByText('Rodas').locator('..')).toContainText(wheels.valueOf())
-        if(optional1) { // If the optional is not undefined, then the assertion is made
-            await expect(resumeContainer.getByText(optional1.valueOf())).toBeVisible()
+        await expect(resumeContainer.getByText('Cor').locator('..')).toContainText(car.color.valueOf())
+        await expect(resumeContainer.getByText('Rodas').locator('..')).toContainText(car.wheels.valueOf())
+        if(car.optional1) { // If the optional is not undefined, then the assertion is made
+            await expect(resumeContainer.getByText(car.optional1.valueOf())).toBeVisible()
         }
-        if(optional2) {
-            await expect(resumeContainer.getByText(optional2.valueOf())).toBeVisible()
+        if(car.optional2) {
+            await expect(resumeContainer.getByText(car.optional2.valueOf())).toBeVisible()
         }
     }
 }

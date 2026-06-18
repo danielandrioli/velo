@@ -14,7 +14,6 @@ function sumArray(mArray: number[]): number {
 }
 console.log(sumArray([2, 4, 10, 1, 20]))
 
-
 /*  2. Implement a function that returns the largest number in an array without using Math.max */
 function maxNumberInArray(mArray: number[]): number {
     let maxNum: number = mArray[0]

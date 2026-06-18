@@ -1,6 +1,6 @@
 import { test } from '../support/fixtures';
 import { ConfigurePage } from '../pages/ConfigurePage';
-import { CarColor, WheelType } from '../support/car_config_data';
+import { CarColor, WheelType } from '../support/data/car_config_data';
 
 test.beforeEach('Enter configuration page', async ({ configurePage }) => {
     await configurePage.open()

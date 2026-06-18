@@ -2,21 +2,24 @@ import { test, expect } from '../support/fixtures';
 import { cpf } from 'cpf-cnpj-validator';
 import { faker } from '@faker-js/faker';
 import { log } from 'console';
-import { CarColor, WheelType, Optionals } from '../support/car_config_data';
+import { CarColor, WheelType, Optionals, getRandomCarConfig, Car } from '../support/data/car_config_data';
+import { ConfigurePage } from '../pages/ConfigurePage';
 
 test('Resume section should contain the correct car details', async ({ configurePage, orderPage, page }) => {
-    let selectedColor = CarColor.MidnightBlack
-    let selectedWheels = WheelType.Sport
-    let optional1 = Optionals.FluxCapacitor
-    let optional2 = Optionals.PrecisionPark
+    const randomCar = getRandomCarConfig()
     await configurePage.open()
-    await configurePage.selectColor(selectedColor)
-    await configurePage.selectWheels(selectedWheels)
-    await configurePage.selectOptionals(optional1, optional2)
-    await configurePage.clickCheckoutButton()
+    await configureCarAndCheckout(configurePage, randomCar)
 
-    await orderPage.assertResumeContainsConfiguredDetails(selectedColor, selectedWheels, optional1, optional2)
+    await orderPage.assertResumeContainsConfiguredDetails(randomCar)
 })
+
+async function configureCarAndCheckout(configurePage: ConfigurePage, car: Car) {
+    console.log(car)
+    await configurePage.selectColor(car.color)
+    await configurePage.selectWheels(car.wheels)
+    await configurePage.selectOptionals(car.optional1, car.optional2)
+    await configurePage.clickCheckoutButton()
+}
 
 test('Create order with optionals', async ({ page }) => {
     const color = { name: 'Lunar White', locatorId: 'color-option-lunar-white' }
