@@ -27,7 +27,8 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     trace: 'retain-on-failure',
-    baseURL: 'http://localhost:5173'
+    baseURL: 'http://localhost:5173',
+    headless: false,
   },
 
   /* Configure projects for major browsers */
