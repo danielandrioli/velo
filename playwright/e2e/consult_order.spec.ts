@@ -59,6 +59,12 @@ test('Correct informations should be shown - using snapshot', async ({ orderLook
   await orderLookupPage.assertOrderResultAriaSnapshot(order);
 })
 
+test('Consult button should be disabled when the input is empty or with spaces', async ({ orderLookupPage }) => {
+  await orderLookupPage.assertConsultButtonDisabled();
+  await orderLookupPage.fillOrderIdInput('       ');
+  await orderLookupPage.assertConsultButtonDisabled();
+})
+
 /*
 test('Consult existing order - approved', async ({ page }) => {
   const orderId = 'VLO-F3XGFQ';

@@ -28,7 +28,14 @@ export class OrderLookupPage {
 
     // ─── Actions ───────────────────────────────────────────────────────────────
     async searchOrder(orderId: string) {
+        await this.fillOrderIdInput(orderId);
+        await this.clickConsultButton()
+    }
+
+    async fillOrderIdInput(orderId: string) {
         await this.page.getByTestId('search-order-id').fill(orderId);
+    }
+    async clickConsultButton() {
         await this.page.getByRole('button', { name: 'Buscar Pedido' }).click();
     }
 
@@ -85,6 +92,10 @@ export class OrderLookupPage {
         await expect(this.page.locator('#root')).toMatchAriaSnapshot(
             `- heading "Pedido não encontrado" [level=3]`
         );
+    }
+
+    async assertConsultButtonDisabled() {
+        await expect(this.page.getByRole('button', { name: 'Buscar Pedido' })).toBeDisabled();
     }
 
     async assertOrderResultAriaSnapshot(order: OrderLookupTestData) {

@@ -4,6 +4,7 @@ import { CarColor, Optionals, WheelType } from "../support/data/car_config_data"
 export class ConfigurePage {
     constructor(private page: Page) { }
 
+    // Elements (posso também ter uma função retornando todos elementos em um objeto)
     get carExteriorImage() {
         return this.page.getByTestId('car-exterior-image');
     }
@@ -37,6 +38,10 @@ export class ConfigurePage {
 
     async clickCheckoutButton() {
         await this.page.getByRole("button", { name: 'Monte o seu' }).click()
+    }
+
+    async getCarPrice() {
+        return await this.page.getByTestId('total-price').textContent()
     }
 
     // ─── Assertions ────────────────────────────────────────────────────────────
