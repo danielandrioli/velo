@@ -3,15 +3,6 @@ import { test, expect } from '../support/fixtures';
 import { OrderLookupPage } from '../pages/OrderLookupPage';
 import { getApprovedOrder } from '../support/data/order_lookup';
 
-test.describe('Consulta de pedido', () => { // Exemplo de suíte de testes
-  // Armazene aqui todos seus tests
-  // test('Exemplo de test', async ({ page }) => { })
-  test.beforeEach('Enter webpage', async ({ page }) => // Esse hook vai funcionar só para os testes dentro desta suíte
-    await page.goto('https://www.tibia.com')
-  )
-  // ..
-})
-
 // let orderLookupPage: OrderLookupPage;
 test.beforeEach('Enter webpage', async ({ orderLookupPage }) => {
   await orderLookupPage.open();
@@ -95,3 +86,14 @@ test('Consult existing order - approved', async ({ page }) => {
   await expect(statusIcon).toHaveClass(/lucide-circle-check-big/)
 })
   */
+
+/*
+test.describe('Consulta de pedido', () => { // Exemplo de suíte de testes
+  // Armazene aqui todos seus tests
+  // test('Exemplo de test', async ({ page }) => { })
+  test.beforeEach('Enter webpage', async ({ page }) => // Esse hook vai funcionar só para os testes dentro desta suíte
+    await page.goto('https://www.tibia.com')
+  )
+  // ..
+})
+*/
