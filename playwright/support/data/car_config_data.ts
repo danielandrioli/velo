@@ -14,6 +14,12 @@ export enum Optionals {
     FluxCapacitor = 'Flux Capacitor'
 }
 
+export enum Status {
+    Aprovado = 'APROVADO',
+    Reprovado = 'REPROVADO',
+    Em_analise = 'EM_ANALISE'
+}
+
 export type Car = {
     color: CarColor,
     wheels: WheelType,

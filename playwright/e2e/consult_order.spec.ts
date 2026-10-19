@@ -1,7 +1,7 @@
 // import { test } from '@playwright/test';
 import { test, expect } from '../support/fixtures';
 import { OrderLookupPage } from '../pages/OrderLookupPage';
-import { getApprovedOrder } from '../support/data/order_lookup';
+import { Status } from '../support/data/car_config_data';
 
 // let orderLookupPage: OrderLookupPage;
 test.beforeEach('Enter webpage', async ({ orderLookupPage }) => {
@@ -9,31 +9,28 @@ test.beforeEach('Enter webpage', async ({ orderLookupPage }) => {
   await orderLookupPage.checkPageLoaded();
 })
 
-test('Consult existing order - approved', async ({ orderLookupPage }) => {
-  const order = getApprovedOrder();
+test('Consult existing order - approved', async ({ orderLookupPage, createOrder }) => {
+  const order = await createOrder({ status: Status.Aprovado });
 
   await orderLookupPage.searchOrder(order.id);
   await orderLookupPage.assertOrderResult(order.id, order.customer.name);
   await orderLookupPage.assertStatusBadge(order.status);
 })
 
+test('Consult existing order - reproved', async ({ orderLookupPage, createOrder }) => {
+  const order = await createOrder({ status: Status.Reprovado, paymentMethod: 'financiamento' });
 
-test('Consult existing order - reproved', async ({ orderLookupPage }) => {
-  const orderId = 'VLO-3UWWDQ';
-  const clientName = 'Jatoba Cicero'
-
-  await orderLookupPage.searchOrder(orderId);
-  await orderLookupPage.assertOrderResult(orderId, clientName);
-  await orderLookupPage.assertStatusBadge('REPROVADO');
+  await orderLookupPage.searchOrder(order.id);
+  await orderLookupPage.assertOrderResult(order.id, order.customer.name);
+  await orderLookupPage.assertStatusBadge(order.status);
 })
 
-test('Consult existing order - Analyzing', async ({ orderLookupPage }) => {
-  const orderId = 'VLO-2DBUR5';
-  const clientName = 'Elenor Morissette'
-
-  await orderLookupPage.searchOrder(orderId);
-  await orderLookupPage.assertOrderResult(orderId, clientName);
-  await orderLookupPage.assertStatusBadge('EM_ANALISE');
+test('Consult existing order - Analyzing', async ({ orderLookupPage, createOrder }) => {
+  const order = await createOrder({ status: Status.Em_analise, paymentMethod: 'financiamento' });
+  console.log('TESTEEEE + ' + order.id)
+  await orderLookupPage.searchOrder(order.id);
+  await orderLookupPage.assertOrderResult(order.id, order.customer.name);
+  await orderLookupPage.assertStatusBadge(order.status);
 })
 
 
@@ -43,8 +40,8 @@ test('Should show message when the order is not found', async ({ orderLookupPage
 })
 
 
-test('Correct informations should be shown - using snapshot', async ({ orderLookupPage }) => {
-  const order = getApprovedOrder();
+test('Correct informations should be shown - using snapshot', async ({ orderLookupPage, createOrder }) => {
+  const order = await createOrder({ status: Status.Aprovado });
 
   await orderLookupPage.searchOrder(order.id);
   await orderLookupPage.assertOrderResultAriaSnapshot(order);
