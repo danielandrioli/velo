@@ -7,5 +7,5 @@ export function gerarCodigoPedido(): string {
         sufixo += caracteres[indice];
     }
 
-    return `VLO-${sufixo}`;
+    return `PLW-${sufixo}`;
 }

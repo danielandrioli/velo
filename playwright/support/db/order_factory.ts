@@ -57,7 +57,7 @@ export async function createOrder(overrides: OrderOverrides = {}): Promise<Order
     const status = overrides.status ?? Status.Aprovado;
     const paymentMethod = overrides.paymentMethod ?? 'avista';
     const name = overrides.customerName ?? `${faker.person.firstName()} ${faker.person.lastName()}`;
-    const email = faker.internet.email().toLowerCase();
+    const email = getEmailFromName(name)
 
     const row = await getDb()
         .insertInto('orders')
@@ -92,4 +92,25 @@ export async function createOrder(overrides: OrderOverrides = {}): Promise<Order
 
 export async function deleteOrder(orderNumber: string): Promise<void> {
     await getDb().deleteFrom('orders').where('order_number', '=', orderNumber).execute();
+}
+
+function getEmailFromName(name: string): string {
+    // 1. Remove acentos, espaços e deixa em minúsculas
+    const nomeLimpo: string = name
+        .normalize('NFD')                    // Divide os caracteres acentuados em letra + acento
+        .replace(/[\u0300-\u036f]/g, '')     // Remove apenas os acentos
+        .replace(/\s+/g, '')                 // Remove todos os espaços
+        .toLowerCase()                       // Deixa em minúsculas
+
+    // 2. Pega o horário atual (HHMM)
+    const agora: Date = new Date()
+    const hora: string = agora.getHours().toString().padStart(2, '0')
+    const minuto: string = agora.getMinutes().toString().padStart(2, '0')
+    const horario: string = `${hora}${minuto}`
+
+    // 3. Junta tudo no formato final
+    const email: string = `${nomeLimpo}_${horario}@gmail.com`
+
+    console.log(email)
+    return email
 }
