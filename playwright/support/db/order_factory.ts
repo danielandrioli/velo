@@ -58,6 +58,8 @@ export async function createOrder(overrides: OrderOverrides = {}): Promise<Order
     const paymentMethod = overrides.paymentMethod ?? 'avista';
     const name = overrides.customerName ?? `${faker.person.firstName()} ${faker.person.lastName()}`;
     const email = getEmailFromName(name)
+    const customerPhone = '(11) 91234-5678'
+    const customerCpf = '529.982.247-25'
 
     const row = await getDb()
         .insertInto('orders')
@@ -67,8 +69,8 @@ export async function createOrder(overrides: OrderOverrides = {}): Promise<Order
             wheel_type: car.wheels,
             customer_name: name,
             customer_email: email,
-            customer_phone: '(11) 91234-5678',
-            customer_cpf: '529.982.247-25',
+            customer_phone: customerPhone,
+            customer_cpf: customerCpf,
             payment_method: paymentMethod,
             total_price: calculatePrice(car, optionals),
             status,
