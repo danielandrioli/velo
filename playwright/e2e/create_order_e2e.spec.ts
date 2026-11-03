@@ -3,6 +3,7 @@ import { cpf } from 'cpf-cnpj-validator';
 import { faker } from '@faker-js/faker';
 import { log } from 'console';
 import { CarColor, WheelType, Optionals, getRandomCarConfig, Car } from '../support/data/car_config_data';
+import { getRandomClient } from '../support/data/client_data';
 import { ConfigurePage } from '../pages/ConfigurePage';
 
 test('Resume section should contain the correct car details', async ({ configurePage, orderPage, page }) => {
@@ -13,6 +14,26 @@ test('Resume section should contain the correct car details', async ({ configure
     await orderPage.assertResumeContainsConfiguredDetails(randomCar)
 })
 
+test('Pedido à vista deve ser aprovado e exibido na confirmação', async ({ configurePage, orderPage, successPage, cleanupOrder }) => {
+    const client = getRandomClient()
+
+    await configurePage.open()
+    await configurePage.clickCheckoutButton() // configuração padrão: R$ 40.000,00
+
+    await orderPage.checkoutForm.fillPersonalData(client)
+    await orderPage.checkoutForm.assertNoFieldErrors()
+
+    await orderPage.checkoutForm.selectCashPayment()
+    await orderPage.assertCashTotal('R$ 40.000,00')
+
+    await orderPage.checkoutForm.acceptTerms()
+    await orderPage.checkoutForm.submit()
+
+    // Registra o pedido para ser apagado no teardown, antes de qualquer assert que possa falhar
+    cleanupOrder(await successPage.getOrderId())
+    await successPage.assertOrderApproved(client)
+})
+
 async function configureCarAndCheckout(configurePage: ConfigurePage, car: Car) {
     console.log(car)
     await configurePage.selectColor(car.color)
@@ -21,6 +42,7 @@ async function configureCarAndCheckout(configurePage: ConfigurePage, car: Car) {
     await configurePage.clickCheckoutButton()
 }
 
+/*
 test('Create order with optionals', async ({ page }) => {
     const color = { name: 'Lunar White', locatorId: 'color-option-lunar-white' }
     const wheels = { name: 'Aero Wheels', locatorId: 'wheel-option-sport' }
@@ -87,3 +109,4 @@ async function fillForm(clientFirstName: string, clientSurname: string, clientEm
     await page.getByTestId('checkout-store').click()
     await page.getByLabel(store).getByText(store).click()
 }
+    */

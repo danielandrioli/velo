@@ -3,6 +3,7 @@ import { LandingPage } from '../pages/LandingPage';
 import { OrderLookupPage } from '../pages/OrderLookupPage';
 import { ConfigurePage } from '../pages/ConfigurePage';
 import { OrderPage } from '../pages/OrderPage';
+import { SuccessPage } from '../pages/SuccessPage';
 import { closeDb } from './db/client';
 import { createOrder, deleteOrder, OrderLookupTestData, OrderOverrides } from './db/order_factory';
 
@@ -12,8 +13,11 @@ type MyFixtures = {
   orderLookupPage: OrderLookupPage;
   configurePage: ConfigurePage;
   orderPage: OrderPage;
+  successPage: SuccessPage;
   // Cria pedidos no banco e os remove no fim do teste
   createOrder: (overrides?: OrderOverrides) => Promise<OrderLookupTestData>;
+  // Para pedidos criados pela UI: registre o id e ele é apagado no fim do teste
+  cleanupOrder: (orderId: string) => void;
 };
 
 type WorkerFixtures = {
@@ -44,6 +48,16 @@ export const test = base.extend<MyFixtures, WorkerFixtures>({
     for (const id of created) {     // 4. TEARDOWN: roda depois do teste, mesmo que ele falhe
       await deleteOrder(id);
     }
+  },
+  cleanupOrder: async ({}, use) => {
+    const ids: string[] = [];
+    await use((orderId) => { ids.push(orderId); });
+    for (const id of ids) {         // só apaga ids que este teste registrou
+      await deleteOrder(id);
+    }
+  },
+  successPage: async ({ page }, use) => {
+    await use(new SuccessPage(page));
   },
   // Fecha o pool de conexões quando o worker termina
   dbCleanup: [async ({}, use) => {

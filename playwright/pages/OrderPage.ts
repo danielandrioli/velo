@@ -35,6 +35,12 @@ export class OrderPage {
         }
     }
 
+    // Total do Resumo e valor exibido na aba "À Vista"
+    async assertCashTotal(price: string) {
+        await expect(this.page.getByTestId('summary-total-price')).toHaveText(price);
+        await expect(this.checkoutForm.cashPaymentTab).toContainText(price);
+    }
+
     async assertStillOnOrderPage() {
         await expect(this.page).toHaveURL(/\/order/);
         await this.checkPageLoaded();

@@ -1,4 +1,5 @@
 import { expect, Page } from '@playwright/test';
+import { Client } from '../../support/data/client_data';
 
 export class CheckoutForm {
     constructor(private page: Page) { }
@@ -18,6 +19,22 @@ export class CheckoutForm {
 
     get cpfInput() {
         return this.page.getByTestId('checkout-cpf');
+    }
+
+    get phoneInput() {
+        return this.page.getByTestId('checkout-phone');
+    }
+
+    get storeSelect() {
+        return this.page.getByTestId('checkout-store');
+    }
+
+    get cashPaymentTab() {
+        return this.page.getByTestId('payment-avista');
+    }
+
+    get termsCheckbox() {
+        return this.page.getByTestId('checkout-terms');
     }
 
     get submitButton() {
@@ -55,6 +72,32 @@ export class CheckoutForm {
         await this.cpfInput.fill(value);
     }
 
+    async fillPhone(value: string) {
+        await this.phoneInput.fill(value);
+    }
+
+    async selectStore(store: string) {
+        await this.storeSelect.click();
+        await this.page.getByLabel(store).getByText(store).click();
+    }
+
+    async fillPersonalData(client: Client) {
+        await this.fillName(client.name);
+        await this.fillSurname(client.surname);
+        await this.fillEmail(client.email);
+        await this.fillPhone(client.phone);
+        await this.fillCpf(client.cpf);
+        await this.selectStore(client.store);
+    }
+
+    async selectCashPayment() {
+        await this.cashPaymentTab.click();
+    }
+
+    async acceptTerms() {
+        await this.termsCheckbox.click();
+    }
+
     async clearPersonalFields() {
         await this.nameInput.fill('');
         await this.surnameInput.fill('');
@@ -69,6 +112,12 @@ export class CheckoutForm {
     // ─── Assertions ────────────────────────────────────────────────────────────
     async assertFieldError(field: 'name' | 'surname' | 'email' | 'cpf', message: string) {
         await expect(this.fieldError(field)).toHaveText(message);
+    }
+
+    async assertNoFieldErrors() {
+        for (const field of ['name', 'surname', 'email', 'phone', 'cpf', 'store', 'terms'] as const) {
+            await expect(this.fieldError(field)).toHaveCount(0);
+        }
     }
 
     async assertRequiredFieldErrors() {
