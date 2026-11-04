@@ -1,4 +1,4 @@
-import { test as base, expect } from '@playwright/test';
+import { test as base } from '@playwright/test';
 import { LandingPage } from '../pages/LandingPage';
 import { OrderLookupPage } from '../pages/OrderLookupPage';
 import { ConfigurePage } from '../pages/ConfigurePage';
@@ -17,7 +17,7 @@ type MyFixtures = {
   // Cria pedidos no banco e os remove no fim do teste
   createOrder: (overrides?: OrderOverrides) => Promise<OrderLookupTestData>;
   // Para pedidos criados pela UI: registre o id e ele é apagado no fim do teste
-  cleanupOrder: (orderId: string) => void;
+  registerOrderForCleanup: (orderId: string) => void;
 };
 
 type WorkerFixtures = {
@@ -49,7 +49,7 @@ export const test = base.extend<MyFixtures, WorkerFixtures>({
       await deleteOrder(id);
     }
   },
-  cleanupOrder: async ({}, use) => {
+  registerOrderForCleanup: async ({}, use) => {
     const ids: string[] = [];
     await use((orderId) => { ids.push(orderId); });
     for (const id of ids) {         // só apaga ids que este teste registrou

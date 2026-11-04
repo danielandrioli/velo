@@ -1,12 +1,9 @@
-import { test, expect } from '../support/fixtures';
-import { cpf } from 'cpf-cnpj-validator';
-import { faker } from '@faker-js/faker';
-import { log } from 'console';
-import { CarColor, WheelType, Optionals, getRandomCarConfig, Car } from '../support/data/car_config_data';
+import { test } from '../support/fixtures';
+import { getRandomCarConfig, Car } from '../support/data/car_config_data';
 import { getRandomClient } from '../support/data/client_data';
 import { ConfigurePage } from '../pages/ConfigurePage';
 
-test('Resume section should contain the correct car details', async ({ configurePage, orderPage, page }) => {
+test('Resume section should contain the correct car details', async ({ configurePage, orderPage }) => {
     const randomCar = getRandomCarConfig()
     await configurePage.open()
     await configureCarAndCheckout(configurePage, randomCar)
@@ -14,8 +11,10 @@ test('Resume section should contain the correct car details', async ({ configure
     await orderPage.assertResumeContainsConfiguredDetails(randomCar)
 })
 
-test('Pedido à vista deve ser aprovado e exibido na confirmação', async ({ configurePage, orderPage, successPage, cleanupOrder }) => {
+test('Pedido à vista deve ser aprovado e exibido na confirmação', async ({ configurePage, orderPage, successPage, registerOrderForCleanup }) => {
     const client = getRandomClient()
+    // Anexa os dados ao relatório, para consulta mesmo que o pedido seja apagado no teardown
+    await test.info().attach('dados-do-cliente', { body: JSON.stringify(client, null, 2), contentType: 'application/json' })
 
     await configurePage.open()
     await configurePage.clickCheckoutButton() // configuração padrão: R$ 40.000,00
@@ -29,8 +28,10 @@ test('Pedido à vista deve ser aprovado e exibido na confirmação', async ({ co
     await orderPage.checkoutForm.acceptTerms()
     await orderPage.checkoutForm.submit()
 
-    // Registra o pedido para ser apagado no teardown, antes de qualquer assert que possa falhar
-    cleanupOrder(await successPage.getOrderId())
+    // Só ANOTA o id: a exclusão acontece no teardown. Fica antes dos asserts para o pedido ser apagado mesmo se eles falharem
+    const orderId = await successPage.getOrderId()
+    registerOrderForCleanup(orderId)
+    await test.info().attach('id-do-pedido', { body: orderId, contentType: 'text/plain' })
     await successPage.assertOrderApproved(client)
 })
 
