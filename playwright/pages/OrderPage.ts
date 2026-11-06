@@ -19,7 +19,20 @@ export class OrderPage {
         await expect(this.page.getByRole('heading', { name: 'Dados Pessoais' })).toBeVisible();
         await expect(this.checkoutForm.submitButton).toBeVisible();
     }
-
+    // ─── Actions ────────────────────────────────────────────────────────────
+    async interceptFinancingScoreRequest(score: number) { 
+        // Isso é um listener. Assim que a requisição for feita, o listener é acionado e a resposta é modificada.
+        await this.page.route('**/functions/v1/credit-analysis', async (route) => {
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({
+                    status: 'Done',
+                    score: score
+                })
+            })
+        })
+    }
 
     // ─── Assertions ────────────────────────────────────────────────────────────
     async assertResumeContainsConfiguredDetails(car: Car) {

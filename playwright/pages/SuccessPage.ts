@@ -13,6 +13,10 @@ export class SuccessPage {
         return this.page.getByTestId('order-id');
     }
 
+    get orderStatus() {
+        return this.page.getByTestId('success-status');
+    }
+
     // ─── Actions ───────────────────────────────────────────────────────────────
     async getOrderId(): Promise<string> {
         await expect(this.orderId).toBeVisible();
@@ -21,6 +25,21 @@ export class SuccessPage {
 
     // ─── Assertions ────────────────────────────────────────────────────────────
     async assertOrderApproved(client: Client) {
+        await this.assertOrderOnPage(client)
+        await expect(this.orderStatus).toHaveText('Pedido Aprovado!');
+    }
+
+    async assertOrderRejected(client: Client) {
+        await this.assertOrderOnPage(client)
+        await expect(this.orderStatus).toHaveText('Crédito Reprovado');
+    }
+
+    async assertOrderOnAnalysis(client: Client) {
+        await this.assertOrderOnPage(client)
+        await expect(this.orderStatus).toHaveText('Pedido em análise!');
+    }
+
+    private async assertOrderOnPage(client: Client) {
         await expect(this.page).toHaveURL(/\/success/);
         await expect(this.statusTitle).toBeVisible();
         await expect(this.orderId).toHaveText(/^VLO-[A-Z0-9]{6}$/);
@@ -28,6 +47,7 @@ export class SuccessPage {
         await expect(this.infoRow('Email')).toContainText(client.email);
         await expect(this.infoRow('Loja de Retirada')).toContainText(client.store);
     }
+
 
     // Linha com rótulo (ex.: "Cliente") e valor, ambos <p> dentro do mesmo container
     private infoRow(label: string) {

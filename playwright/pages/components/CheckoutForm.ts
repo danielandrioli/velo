@@ -32,6 +32,14 @@ export class CheckoutForm {
     get cashPaymentTab() {
         return this.page.getByTestId('payment-avista');
     }
+    
+    get financingPaymentTab() {
+        return this.page.getByTestId('payment-financiamento');
+    }
+
+    get financingEntryValueInput() {
+        return this.page.getByTestId('input-entry-value');
+    }
 
     get termsCheckbox() {
         return this.page.getByTestId('checkout-terms');
@@ -75,10 +83,14 @@ export class CheckoutForm {
     async fillPhone(value: string) {
         await this.phoneInput.fill(value);
     }
-
+    
     async selectStore(store: string) {
         await this.storeSelect.click();
         await this.page.getByLabel(store).getByText(store).click();
+    }
+
+    async fillfinancingEntryValue(value: string) {
+        await this.financingEntryValueInput.fill(value);
     }
 
     async fillPersonalData(client: Client) {
@@ -92,6 +104,10 @@ export class CheckoutForm {
 
     async selectCashPayment() {
         await this.cashPaymentTab.click();
+    }
+
+    async selectfinancingPayment() {
+        await this.financingPaymentTab.click();
     }
 
     async acceptTerms() {

@@ -43,6 +43,84 @@ async function configureCarAndCheckout(configurePage: ConfigurePage, car: Car) {
     await configurePage.clickCheckoutButton()
 }
 
+test('Pedido financiado com CPF contendo bom score (> 700) deve ser aprovado e exibido na confirmação', async ({ configurePage, orderPage, successPage, registerOrderForCleanup }) => {
+    const client = getRandomClient()
+
+    await configurePage.open()
+    await configurePage.clickCheckoutButton() // configuração padrão: R$ 40.000,00
+    await orderPage.interceptFinancingScoreRequest(750) // score > 700 é considerado um score bom
+
+    await orderPage.checkoutForm.fillPersonalData(client)
+    await orderPage.checkoutForm.assertNoFieldErrors()
+    await orderPage.checkoutForm.selectfinancingPayment()
+    await orderPage.checkoutForm.acceptTerms()
+    await orderPage.checkoutForm.submit()
+
+    const orderId = await successPage.getOrderId()
+    registerOrderForCleanup(orderId)
+    await test.info().attach('id-do-pedido', { body: orderId, contentType: 'text/plain' })
+    await successPage.assertOrderApproved(client)
+})
+
+test('Pedido financiado com CPF contendo mal score (<= 500) deve ser reprovado e exibido na confirmação', async ({ configurePage, orderPage, successPage, registerOrderForCleanup }) => {
+    const client = getRandomClient()
+
+    await configurePage.open()
+    await configurePage.clickCheckoutButton() // configuração padrão: R$ 40.000,00
+    await orderPage.interceptFinancingScoreRequest(400) // score <= 500 é considerado um score ruim
+
+    await orderPage.checkoutForm.fillPersonalData(client)
+    await orderPage.checkoutForm.assertNoFieldErrors()
+    await orderPage.checkoutForm.selectfinancingPayment()
+    await orderPage.checkoutForm.acceptTerms()
+    await orderPage.checkoutForm.submit()
+    
+    const orderId = await successPage.getOrderId()
+    registerOrderForCleanup(orderId)
+    await test.info().attach('id-do-pedido', { body: orderId, contentType: 'text/plain' })
+    await successPage.assertOrderRejected(client)
+})
+
+test('Pedido financiado com CPF contendo score médio (> 500 e <= 700) deve ser levado para análise', async ({ configurePage, orderPage, successPage, registerOrderForCleanup }) => {
+    const client = getRandomClient()
+
+    await configurePage.open()
+    await configurePage.clickCheckoutButton() // configuração padrão: R$ 40.000,00
+    await orderPage.interceptFinancingScoreRequest(501)
+
+    await orderPage.checkoutForm.fillPersonalData(client)
+    await orderPage.checkoutForm.assertNoFieldErrors()
+    await orderPage.checkoutForm.selectfinancingPayment()
+    await orderPage.checkoutForm.acceptTerms()
+    await orderPage.checkoutForm.submit()
+
+    const orderId = await successPage.getOrderId()
+    registerOrderForCleanup(orderId)
+    await test.info().attach('id-do-pedido', { body: orderId, contentType: 'text/plain' })
+    await successPage.assertOrderOnAnalysis(client)
+})
+
+/*
+        // Regras de Decisão (Ordem de Avaliação)
+        // 1️⃣ Regra da Entrada Alta: SE (Entrada >= 50% do Total) E (Score < 700) → APROVADO
+        if (entryPercentage >= 0.5 && score < 700) {
+          orderStatus = 'APROVADO';
+        }
+        // 2️⃣ Score Alto: SE Score > 700 → APROVADO
+        else if (score > 700) {
+          orderStatus = 'APROVADO';
+        }
+        // 3️⃣ Score Médio: SE Score entre 501 e 700 → EM_ANALISE
+        else if (score >= 501 && score <= 700) {
+          orderStatus = 'EM_ANALISE';
+        }
+        // 4️⃣ Score Baixo: SE Score <= 500 → REPROVADO
+        else {
+          orderStatus = 'REPROVADO';
+        }
+*/
+
+
 /*
 test('Create order with optionals', async ({ page }) => {
     const color = { name: 'Lunar White', locatorId: 'color-option-lunar-white' }
