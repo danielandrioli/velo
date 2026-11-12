@@ -1,7 +1,9 @@
 import { test } from '../support/fixtures';
 import { getRandomCarConfig, Car } from '../support/data/car_config_data';
-import { getRandomClient } from '../support/data/client_data';
+import { Client, getRandomClient } from '../support/data/client_data';
 import { ConfigurePage } from '../pages/ConfigurePage';
+import { OrderPage } from '../pages/OrderPage';
+import { describe } from 'node:test';
 
 test('Resume section should contain the correct car details', async ({ configurePage, orderPage }) => {
     const randomCar = getRandomCarConfig()
@@ -50,11 +52,7 @@ test('Pedido financiado com CPF contendo bom score (> 700) deve ser aprovado e e
     await configurePage.clickCheckoutButton() // configuração padrão: R$ 40.000,00
     await orderPage.interceptFinancingScoreRequest(750) // score > 700 é considerado um score bom
 
-    await orderPage.checkoutForm.fillPersonalData(client)
-    await orderPage.checkoutForm.assertNoFieldErrors()
-    await orderPage.checkoutForm.selectfinancingPayment()
-    await orderPage.checkoutForm.acceptTerms()
-    await orderPage.checkoutForm.submit()
+    preencherFormularioComFinanciamento(orderPage, client, 0)
 
     const orderId = await successPage.getOrderId()
     registerOrderForCleanup(orderId)
@@ -69,12 +67,8 @@ test('Pedido financiado com CPF contendo mal score (<= 500) deve ser reprovado e
     await configurePage.clickCheckoutButton() // configuração padrão: R$ 40.000,00
     await orderPage.interceptFinancingScoreRequest(400) // score <= 500 é considerado um score ruim
 
-    await orderPage.checkoutForm.fillPersonalData(client)
-    await orderPage.checkoutForm.assertNoFieldErrors()
-    await orderPage.checkoutForm.selectfinancingPayment()
-    await orderPage.checkoutForm.acceptTerms()
-    await orderPage.checkoutForm.submit()
-    
+    preencherFormularioComFinanciamento(orderPage, client, 0)
+
     const orderId = await successPage.getOrderId()
     registerOrderForCleanup(orderId)
     await test.info().attach('id-do-pedido', { body: orderId, contentType: 'text/plain' })
@@ -88,17 +82,94 @@ test('Pedido financiado com CPF contendo score médio (> 500 e <= 700) deve ser 
     await configurePage.clickCheckoutButton() // configuração padrão: R$ 40.000,00
     await orderPage.interceptFinancingScoreRequest(501)
 
-    await orderPage.checkoutForm.fillPersonalData(client)
-    await orderPage.checkoutForm.assertNoFieldErrors()
-    await orderPage.checkoutForm.selectfinancingPayment()
-    await orderPage.checkoutForm.acceptTerms()
-    await orderPage.checkoutForm.submit()
+    preencherFormularioComFinanciamento(orderPage, client, 0)
 
     const orderId = await successPage.getOrderId()
     registerOrderForCleanup(orderId)
     await test.info().attach('id-do-pedido', { body: orderId, contentType: 'text/plain' })
     await successPage.assertOrderOnAnalysis(client)
 })
+
+test.describe('Financiamento com entrada', () => {
+    test('Pedido financiado com CPF contendo score <= 700 mas com >= 50% de entrada deve ser aprovado', async ({ configurePage, orderPage, successPage, registerOrderForCleanup }) => {
+        const client = getRandomClient()
+
+        await configurePage.open()
+        const currentCarPrice = await configurePage.getCarPrice() // configuração padrão: R$ 40.000,00
+        const entryValue = currentCarPrice / 2 // 50%
+        await configurePage.clickCheckoutButton()
+        await orderPage.interceptFinancingScoreRequest(501)
+
+        preencherFormularioComFinanciamento(orderPage, client, entryValue)
+
+        const orderId = await successPage.getOrderId()
+        registerOrderForCleanup(orderId)
+        await test.info().attach('id-do-pedido', { body: orderId, contentType: 'text/plain' })
+        await successPage.assertOrderApproved(client)
+    })
+
+    test('Pedido financiado com CPF contendo score <= 500 e com < 50% de entrada deve ser reprovado', async ({ configurePage, orderPage, successPage, registerOrderForCleanup }) => {
+        const client = getRandomClient()
+
+        await configurePage.open()
+        const currentCarPrice = await configurePage.getCarPrice() // configuração padrão: R$ 40.000,00
+        const entryValue = (currentCarPrice / 2) - 1 // < 50%
+        await configurePage.clickCheckoutButton()
+        await orderPage.interceptFinancingScoreRequest(500)
+
+        preencherFormularioComFinanciamento(orderPage, client, entryValue)
+
+        const orderId = await successPage.getOrderId()
+        registerOrderForCleanup(orderId)
+        await test.info().attach('id-do-pedido', { body: orderId, contentType: 'text/plain' })
+        await successPage.assertOrderRejected(client)
+    })
+
+    test('Pedido financiado com CPF contendo score <= 500 e com > 50% de entrada deve ser aprovado', async ({ configurePage, orderPage, successPage, registerOrderForCleanup }) => {
+        const client = getRandomClient()
+
+        await configurePage.open()
+        const currentCarPrice = await configurePage.getCarPrice() // configuração padrão: R$ 40.000,00
+        const entryValue = (currentCarPrice / 2) + 1 // > 50%
+        await configurePage.clickCheckoutButton()
+        await orderPage.interceptFinancingScoreRequest(500)
+
+        preencherFormularioComFinanciamento(orderPage, client, entryValue)
+
+        const orderId = await successPage.getOrderId()
+        registerOrderForCleanup(orderId)
+        await test.info().attach('id-do-pedido', { body: orderId, contentType: 'text/plain' })
+        await successPage.assertOrderApproved(client)
+    })
+
+    test('Pedido financiado com CPF contendo score <= 500 e com 50% de entrada deve ser aprovado', async ({ configurePage, orderPage, successPage, registerOrderForCleanup }) => {
+        const client = getRandomClient()
+
+        await configurePage.open()
+        const currentCarPrice = await configurePage.getCarPrice() // configuração padrão: R$ 40.000,00
+        const entryValue = (currentCarPrice / 2) // 50%
+        await configurePage.clickCheckoutButton()
+        await orderPage.interceptFinancingScoreRequest(500)
+
+        preencherFormularioComFinanciamento(orderPage, client, entryValue)
+
+        const orderId = await successPage.getOrderId()
+        registerOrderForCleanup(orderId)
+        await test.info().attach('id-do-pedido', { body: orderId, contentType: 'text/plain' })
+        await successPage.assertOrderApproved(client)
+    })
+
+});
+
+
+async function preencherFormularioComFinanciamento(orderPage: OrderPage, client: Client, financingEntryValue: number) {
+    await orderPage.checkoutForm.fillPersonalData(client)
+    await orderPage.checkoutForm.assertNoFieldErrors()
+    await orderPage.checkoutForm.selectfinancingPayment()
+    await orderPage.checkoutForm.fillfinancingEntryValue(financingEntryValue.toString())
+    await orderPage.checkoutForm.acceptTerms()
+    await orderPage.checkoutForm.submit()
+}
 
 /*
         // Regras de Decisão (Ordem de Avaliação)

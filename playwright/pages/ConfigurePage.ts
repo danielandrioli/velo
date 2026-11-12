@@ -41,7 +41,10 @@ export class ConfigurePage {
     }
 
     async getCarPrice() {
-        return await this.page.getByTestId('total-price').textContent()
+        const price = await this.page.getByTestId('total-price').textContent()
+        return Number(
+            price?.replace('R$', '').replace(/\./g, '').replace(',', '.').trim()
+        )
     }
 
     // ─── Assertions ────────────────────────────────────────────────────────────
