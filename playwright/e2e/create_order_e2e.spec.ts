@@ -6,89 +6,90 @@ import { OrderPage } from '../pages/OrderPage';
 import { describe } from 'node:test';
 
 test('Resume section should contain the correct car details', async ({ configurePage, orderPage }) => {
-    const randomCar = getRandomCarConfig()
+    const car = getRandomCarConfig()
     await configurePage.open()
-    await configureCarAndCheckout(configurePage, randomCar)
-
-    await orderPage.assertResumeContainsConfiguredDetails(randomCar)
-})
-
-test('Pedido à vista deve ser aprovado e exibido na confirmação', async ({ configurePage, orderPage, successPage, registerOrderForCleanup }) => {
-    const client = getRandomClient()
-    // Anexa os dados ao relatório, para consulta mesmo que o pedido seja apagado no teardown
-    await test.info().attach('dados-do-cliente', { body: JSON.stringify(client, null, 2), contentType: 'application/json' })
-
-    await configurePage.open()
-    await configurePage.clickCheckoutButton() // configuração padrão: R$ 40.000,00
-
-    await orderPage.checkoutForm.fillPersonalData(client)
-    await orderPage.checkoutForm.assertNoFieldErrors()
-
-    await orderPage.checkoutForm.selectCashPayment()
-    await orderPage.assertCashTotal('R$ 40.000,00')
-
-    await orderPage.checkoutForm.acceptTerms()
-    await orderPage.checkoutForm.submit()
-
-    // Só ANOTA o id: a exclusão acontece no teardown. Fica antes dos asserts para o pedido ser apagado mesmo se eles falharem
-    const orderId = await successPage.getOrderId()
-    registerOrderForCleanup(orderId)
-    await test.info().attach('id-do-pedido', { body: orderId, contentType: 'text/plain' })
-    await successPage.assertOrderApproved(client)
-})
-
-async function configureCarAndCheckout(configurePage: ConfigurePage, car: Car) {
-    console.log(car)
     await configurePage.selectColor(car.color)
     await configurePage.selectWheels(car.wheels)
     await configurePage.selectOptionals(car.optional1, car.optional2)
     await configurePage.clickCheckoutButton()
-}
 
-test('Pedido financiado com CPF contendo bom score (> 700) deve ser aprovado e exibido na confirmação', async ({ configurePage, orderPage, successPage, registerOrderForCleanup }) => {
-    const client = getRandomClient()
-
-    await configurePage.open()
-    await configurePage.clickCheckoutButton() // configuração padrão: R$ 40.000,00
-    await orderPage.interceptFinancingScoreRequest(750) // score > 700 é considerado um score bom
-
-    preencherFormularioComFinanciamento(orderPage, client, 0)
-
-    const orderId = await successPage.getOrderId()
-    registerOrderForCleanup(orderId)
-    await test.info().attach('id-do-pedido', { body: orderId, contentType: 'text/plain' })
-    await successPage.assertOrderApproved(client)
+    await orderPage.assertResumeContainsConfiguredDetails(car)
 })
 
-test('Pedido financiado com CPF contendo mal score (<= 500) deve ser reprovado e exibido na confirmação', async ({ configurePage, orderPage, successPage, registerOrderForCleanup }) => {
-    const client = getRandomClient()
-
-    await configurePage.open()
-    await configurePage.clickCheckoutButton() // configuração padrão: R$ 40.000,00
-    await orderPage.interceptFinancingScoreRequest(400) // score <= 500 é considerado um score ruim
-
-    preencherFormularioComFinanciamento(orderPage, client, 0)
-
-    const orderId = await successPage.getOrderId()
-    registerOrderForCleanup(orderId)
-    await test.info().attach('id-do-pedido', { body: orderId, contentType: 'text/plain' })
-    await successPage.assertOrderRejected(client)
+test.describe('Pedidos à vista', () => {
+    test('Pedido à vista deve ser aprovado e exibido na confirmação', async ({ configurePage, orderPage, successPage, registerOrderForCleanup }) => {
+        const client = getRandomClient()
+        // Anexa os dados ao relatório, para consulta mesmo que o pedido seja apagado no teardown
+        await test.info().attach('dados-do-cliente', { body: JSON.stringify(client, null, 2), contentType: 'application/json' })
+    
+        await configurePage.open()
+        await configurePage.clickCheckoutButton() // configuração padrão: R$ 40.000,00
+    
+        await orderPage.checkoutForm.fillPersonalData(client)
+        await orderPage.checkoutForm.assertNoFieldErrors()
+    
+        await orderPage.checkoutForm.selectCashPayment()
+        await orderPage.assertCashTotal('R$ 40.000,00')
+    
+        await orderPage.checkoutForm.acceptTerms()
+        await orderPage.checkoutForm.submit()
+    
+        // Só ANOTA o id: a exclusão acontece no teardown. Fica antes dos asserts para o pedido ser apagado mesmo se eles falharem
+        const orderId = await successPage.getOrderId()
+        registerOrderForCleanup(orderId)
+        await test.info().attach('id-do-pedido', { body: orderId, contentType: 'text/plain' })
+        await successPage.assertOrderApproved(client)
+    })
 })
 
-test('Pedido financiado com CPF contendo score médio (> 500 e <= 700) deve ser levado para análise', async ({ configurePage, orderPage, successPage, registerOrderForCleanup }) => {
-    const client = getRandomClient()
 
-    await configurePage.open()
-    await configurePage.clickCheckoutButton() // configuração padrão: R$ 40.000,00
-    await orderPage.interceptFinancingScoreRequest(501)
-
-    preencherFormularioComFinanciamento(orderPage, client, 0)
-
-    const orderId = await successPage.getOrderId()
-    registerOrderForCleanup(orderId)
-    await test.info().attach('id-do-pedido', { body: orderId, contentType: 'text/plain' })
-    await successPage.assertOrderOnAnalysis(client)
+test.describe('Financiamento sem entrada', () => {
+    test('Pedido financiado com CPF contendo bom score (> 700) deve ser aprovado e exibido na confirmação', async ({ configurePage, orderPage, successPage, registerOrderForCleanup }) => {
+        const client = getRandomClient()
+    
+        await configurePage.open()
+        await configurePage.clickCheckoutButton() // configuração padrão: R$ 40.000,00
+        await orderPage.interceptFinancingScoreRequest(750) // score > 700 é considerado um score bom
+    
+        preencherFormularioComFinanciamento(orderPage, client, 0)
+    
+        const orderId = await successPage.getOrderId()
+        registerOrderForCleanup(orderId)
+        await test.info().attach('id-do-pedido', { body: orderId, contentType: 'text/plain' })
+        await successPage.assertOrderApproved(client)
+    })
+    
+    test('Pedido financiado com CPF contendo mal score (<= 500) deve ser reprovado e exibido na confirmação', async ({ configurePage, orderPage, successPage, registerOrderForCleanup }) => {
+        const client = getRandomClient()
+    
+        await configurePage.open()
+        await configurePage.clickCheckoutButton() // configuração padrão: R$ 40.000,00
+        await orderPage.interceptFinancingScoreRequest(400) // score <= 500 é considerado um score ruim
+    
+        preencherFormularioComFinanciamento(orderPage, client, 0)
+    
+        const orderId = await successPage.getOrderId()
+        registerOrderForCleanup(orderId)
+        await test.info().attach('id-do-pedido', { body: orderId, contentType: 'text/plain' })
+        await successPage.assertOrderRejected(client)
+    })
+    
+    test('Pedido financiado com CPF contendo score médio (> 500 e <= 700) deve ser levado para análise', async ({ configurePage, orderPage, successPage, registerOrderForCleanup }) => {
+        const client = getRandomClient()
+    
+        await configurePage.open()
+        await configurePage.clickCheckoutButton() // configuração padrão: R$ 40.000,00
+        await orderPage.interceptFinancingScoreRequest(501)
+    
+        preencherFormularioComFinanciamento(orderPage, client, 0)
+    
+        const orderId = await successPage.getOrderId()
+        registerOrderForCleanup(orderId)
+        await test.info().attach('id-do-pedido', { body: orderId, contentType: 'text/plain' })
+        await successPage.assertOrderOnAnalysis(client)
+    })
 })
+
 
 test.describe('Financiamento com entrada', () => {
     test('Pedido financiado com CPF contendo score <= 700 mas com >= 50% de entrada deve ser aprovado', async ({ configurePage, orderPage, successPage, registerOrderForCleanup }) => {
