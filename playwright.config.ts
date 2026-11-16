@@ -27,7 +27,7 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     trace: 'retain-on-failure',
-    baseURL: 'http://localhost:5173'
+    baseURL: 'https://dboy-velo.vercel.app/' //prod: https://dboy-velo.vercel.app/ e local: http://localhost:5173
   },
 
   /* Configure projects for major browsers */
