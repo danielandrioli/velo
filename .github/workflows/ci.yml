@@ -6,7 +6,7 @@ name: Continuous Integration
 on:
   push:
     branches:
-      - main
+      - master
 
 env:
   NODE_VERSION: '24'
